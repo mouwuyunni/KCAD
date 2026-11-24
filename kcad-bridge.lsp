@@ -1,0 +1,60 @@
+;;; Loaded after init.lsp in each AutoCAD drawing.
+(defun kcad:settings ()
+  (list *rc-thk* *rc-back-thk* *rc-gap* *rc-shelf-num*
+        *rc-door-num* *rc-depth* *rc-drawer-h* *rc-handle-len*))
+(vl-acad-defun 'kcad:settings)
+
+(if (not (assoc "RC-背板" *rc-layers*))
+  (setq *rc-layers* (append *rc-layers* '(("RC-背板" 8)))))
+
+(setq c:RCLB c:LB)
+(defun c:LB ()
+  (if (eq (type kcad:vertical-board) 'EXRXSUBR)
+    (kcad:vertical-board)
+    (c:RCLB))
+  (princ))
+
+(defun kcad:csv (label export / directory default name path answer)
+  (rc:env)
+  (setq directory (getvar "DWGPREFIX"))
+  (if (= directory "") (setq directory (getvar "TEMPPREFIX")))
+  (setq default (strcat directory "RuiCAD_" label ".csv"))
+  (setq name (vl-string-trim " \"" (getstring T (strcat "\nCSV 路径 <" default ">: "))))
+  (setq path
+    (cond ((= name "") default)
+          ((vl-filename-directory name) name)
+          (T (strcat directory name))))
+  (if (null (vl-filename-extension path)) (setq path (strcat path ".csv")))
+  (if (findfile path)
+    (progn
+      (initget "Yes No")
+      (setq answer (getkword "\n文件已存在，覆盖？ [Yes/No] <No>: ")))
+    (setq answer "Yes"))
+  (if (= answer "Yes") (princ (apply export (list path))))
+  (princ))
+
+(defun c:BOM () (kcad:csv "BOM" 'rc:bom))
+(defun c:BOM2 () (kcad:csv "BOM2" 'rc:bom2))
+
+(setq c:KCADPRIMBASE c:PRIM)
+(defun c:PRIM ()
+  (if (eq (type kcad:attach-images) 'EXRXSUBR)
+    (kcad:attach-images)
+    (c:KCADPRIMBASE))
+  (princ))
+
+(setq c:KCADRCHBASE c:RCH)
+(defun c:RCH ()
+  (c:KCADRCHBASE)
+  (princ "\nKCAD: DXSC 1 11 2 3 NC 4 44 5 MB 6 66 MBFX 8 BY 9")
+  (princ "\n      0 DX SX PM PP 7 LB BB YS GB ZA MF BT BE RCML RCL KLIB")
+  (princ "\n      KCAD / KCADRELOAD")
+  (princ))
+
+(setq c:KCADRCVBASE c:RCV)
+(defun c:RCV ()
+  (if (eq (type kcad:version) 'EXRXSUBR)
+    (princ (strcat "\n[KCAD] v" (kcad:version) " · MIT 开源 · AutoCAD 2020 x64")))
+  (c:KCADRCVBASE)
+  (princ))
+(princ)

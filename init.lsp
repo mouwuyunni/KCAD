@@ -10,13 +10,12 @@
 ;;; 说明: APPLOAD 加载本文件时, AutoCAD 会把文件所在目录临时
 ;;;       加入支持路径, 因此 findfile "init.lsp" 可用;
 ;;;       若已安装(install.lsp), 则支持路径已永久包含该目录。
-(if (null *rc-root*)
-  (setq *rc-root*
-    (vl-string-right-trim
-      "\\"
-      (vl-string-right-trim
-        "init.lsp"
-        (findfile "init.lsp")))))
+(if (and
+      (not (and *rc-root* (findfile (strcat *rc-root* "/kcad-bridge.lsp"))))
+      (setq *rc-entry* (findfile "kcad-bridge.lsp")))
+  (setq *rc-root* (vl-filename-directory *rc-entry*)))
+(if (and (null *rc-root*) (setq *rc-entry* (findfile "init.lsp")))
+  (setq *rc-root* (vl-filename-directory *rc-entry*)))
 
 ;;; 若仍为空(非常规加载), 尝试从环境变量读取
 (if (or (null *rc-root*) (= *rc-root* ""))
@@ -37,6 +36,11 @@
     (load (strcat *rc-root* "\\commands\\hardware.lsp"))
     (load (strcat *rc-root* "\\commands\\edit.lsp"))
     (load (strcat *rc-root* "\\commands\\panel.lsp"))
+    (if (findfile (strcat *rc-root* "/kcad-bridge.lsp"))
+      (progn
+        (load (strcat *rc-root* "/kcad-bridge.lsp"))
+        (setq *kcad-loaded-root* (vl-string-translate "\\" "/" *rc-root*))
+        (princ "\n*** KCAD 工具面板：输入 KCAD 回车即可呼出 ***")))
     (princ "\n==========================================")
     (princ "\n  RuiCAD 开源全屋定制 CAD 工具箱 已加载")
     (princ "\n  输入 RCH 查看全部命令 | RC 设置参数")

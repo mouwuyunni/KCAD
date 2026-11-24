@@ -7,6 +7,9 @@ installer/build.log
 installer/res/
 # 编译输出(发布物统一放 release/)
 installer/dist/
+/dist/
+**/bin/
+**/obj/
 
 # ---- 测试运行输出与本机临时脚本(不入库) ----
 test/*.txt

@@ -1,0 +1,60 @@
+name: Build AutoCAD 2020 plugin
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cad2020-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-architecture: x64
+      - name: Compile and package
+        shell: powershell
+        run: ./build.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RuiCAD-CAD2020
+          path: dist/RuiCAD-CAD2020.zip
+          if-no-files-found: error
+      - name: Publish public release
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $false
+          $asset = 'dist/RuiCAD-CAD2020.zip'
+          $rolling = $env:GITHUB_REF -eq 'refs/heads/main'
+          $tag = if ($rolling) { 'latest' } else { $env:GITHUB_REF_NAME }
+          $title = if ($rolling) { 'KCAD for AutoCAD 2020 (latest)' } else { "KCAD $tag for AutoCAD 2020" }
+          $notes = "AutoCAD 2020 x64 build from commit $env:GITHUB_SHA. Extract the zip and run install.bat."
+          $latestFlag = if ($rolling) { '--latest=true' } else { '--latest=false' }
+
+          gh release view $tag --json id *> $null
+          if ($LASTEXITCODE -eq 0) {
+            if ($rolling) {
+              gh api --method PATCH "repos/$env:GH_REPO/git/refs/tags/latest" -f "sha=$env:GITHUB_SHA" -F force=true --silent
+              if ($LASTEXITCODE -ne 0) { throw 'Could not update the rolling release tag.' }
+            }
+            gh release upload $tag $asset --clobber
+            if ($LASTEXITCODE -ne 0) { throw 'Could not upload the release asset.' }
+            gh release edit $tag --title $title --notes $notes $latestFlag
+          } else {
+            gh release create $tag $asset --target $env:GITHUB_SHA --title $title --notes $notes $latestFlag
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Could not publish the release.' }

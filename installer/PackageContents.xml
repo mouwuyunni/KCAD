@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ApplicationPackage SchemaVersion="1.0" Name="KCAD" AppVersion="0.3.0"
+                    Description="KCAD cabinet drafting tools for AutoCAD 2020"
+                    ProductCode="{EBC10ACC-604A-477C-A2A6-DB4AFB23F822}"
+                    UpgradeCode="{D9FC1542-2D80-4699-978B-679B7FBBE828}">
+  <CompanyDetails Name="KCAD contributors" Url="https://github.com/mouwuyunni/KCAD" />
+  <Components>
+    <RuntimeRequirements OS="Win64" Platform="AutoCAD" SeriesMin="R23.0" SeriesMax="R24.3" SupportPath="./Contents" />
+    <ComponentEntry AppName="KCAD Lisp" AppType="Lisp" ModuleName="./Contents/init.lsp"
+                    PerDocument="True" />
+    <ComponentEntry AppName="KCAD" AppType=".Net" ModuleName="./Contents/RuiCAD.UI.dll"
+                    LoadOnAutoCADStartup="True" />
+  </Components>
+</ApplicationPackage>

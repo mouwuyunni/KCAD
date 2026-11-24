@@ -227,3 +227,10 @@ RuiCAD/
 - [ ] 多套工艺预设（颗粒板 / 多层板 / 全屋风格）切换
 
 欢迎提 Issue 与 PR。
+
+## 十、下载与安装测试步骤
+
+1. 在 [KCAD 公开 Release](https://github.com/mouwuyunni/KCAD/releases/tag/latest) 下载 `RuiCAD-CAD2020.zip`，完整解压。
+2. 关闭 AutoCAD，双击解压目录中的 `install.bat`。
+3. 打开 AutoCAD 2020 x64 和一张图纸。左侧会自动显示 KCAD 面板。关闭后输入 `KCAD` 并回车可重新打开。
+4. 可以先点「两点模式-11」画柜体框架，再点「均分层板-3」选择框内空腔。更多试画步骤和卸载方法见 [CAD 2020 安装与验证](docs/CAD2020.md)。
